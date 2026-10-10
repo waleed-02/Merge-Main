@@ -1,0 +1,309 @@
+@import "tailwindcss";
+
+@theme {
+  /* Three colours, nothing else. Softer shades are black or white at an opacity. */
+  --color-*: initial;
+  --color-orange: #ec522c;
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --ease-brand: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --breakpoint-desk: 900px;
+
+  --animate-bob: bob 0.8s var(--ease-brand) infinite alternate;
+
+  @keyframes bob {
+    from {
+      transform: translateY(-3px);
+    }
+    to {
+      transform: translateY(3px);
+    }
+  }
+}
+
+/*
+ * Responsive variants beyond the 900px `desk:` breakpoint. The same queries
+ * live in lib/gsap.ts for the JavaScript side; keep the two in step.
+ *
+ * pin:   pinned / horizontal layouts. Needs a desktop-sized viewport in both
+ *        directions (a landscape phone is wide but far too short) and motion.
+ * side:  wide-proportioned screens put the hero's knot beside the headline;
+ *        taller ones stack it underneath.
+ * short: landscape phones and other very short viewports.
+ */
+@custom-variant pin (@media (min-width: 900px) and (min-height: 480px) and (prefers-reduced-motion: no-preference));
+@custom-variant side (@media (min-aspect-ratio: 23/20));
+@custom-variant short (@media (max-height: 479.98px));
+
+/* Client-work cards stack as they stick. A card taller than the screen sticks
+   higher up (--fit, set in ClientWork.tsx) so its lower half is never covered unseen. */
+.work-card {
+  top: min(calc(4.5rem + var(--i, 0) * 14px), var(--fit, 100svh));
+}
+
+html {
+  background: #fff;
+  color: #000;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+body {
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+::selection {
+  background: #ec522c;
+  color: #000;
+}
+
+:focus-visible {
+  outline: 2px solid #ec522c;
+  outline-offset: 3px;
+}
+[data-theme="dark"] :focus-visible,
+.dock :focus-visible {
+  outline-color: #fff;
+}
+
+@layer components {
+  .display {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #ec522c;
+    flex: none;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0 1.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    transition:
+      transform 0.3s var(--ease-brand),
+      background-color 0.3s var(--ease-brand),
+      color 0.3s var(--ease-brand);
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  /* Orange fill always carries black text (5.8:1). */
+  .btn-primary {
+    background: #ec522c;
+    color: #000;
+  }
+  .btn-outline {
+    box-shadow: inset 0 0 0 1.5px #000;
+    color: #000;
+  }
+  .btn-outline:hover {
+    background: #000;
+    color: #fff;
+  }
+  [data-theme="dark"] .btn-outline {
+    box-shadow: inset 0 0 0 1.5px #fff;
+    color: #fff;
+  }
+  [data-theme="dark"] .btn-outline:hover {
+    background: #fff;
+    color: #000;
+  }
+}
+
+/* The custom cursor replaces the native one on precise pointers only. */
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor,
+  html.has-cursor a,
+  html.has-cursor button,
+  html.has-cursor label,
+  html.has-cursor summary {
+    cursor: none;
+  }
+}
+
+/* Reduced motion: sections simply fade in, see components/providers/SmoothScroll. */
+.rm-fade {
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-brand);
+}
+.rm-fade.is-in {
+  opacity: 1;
+}
+
+/* Small in-card visuals grow in once, when their card first comes into view. */
+@media (prefers-reduced-motion: no-preference) {
+  .viz .grow-x,
+  .viz .grow-y,
+  .viz .pop {
+    transition: transform 0.7s var(--ease-brand);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+  .viz .grow-x {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .viz .grow-y {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  .viz .pop {
+    transform: scale(0);
+  }
+  .viz.is-in .grow-x,
+  .viz.is-in .grow-y,
+  .viz.is-in .pop {
+    transform: none;
+  }
+}
+
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.4s var(--ease-brand);
+  will-change: transform;
+}
+
+.field {
+  width: 100%;
+  min-height: 52px;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: #fff;
+  color: #000;
+  font-size: 1rem;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
+  transition: box-shadow 0.3s var(--ease-brand);
+}
+.field::placeholder {
+  color: rgb(0 0 0 / 0.6);
+}
+.field:hover {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.5);
+}
+.field:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #000;
+}
+/* Sections receive focus after an in-page jump; they need no ring of their own. */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* The canvas arrives after the HTML; it fades in rather than popping. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.fade-in {
+  animation: fade-in 0.6s var(--ease-brand) both;
+}
+
+/*
+ * Preloader and hero intro. Pure CSS so they begin at first paint: the mark
+ * draws (0.5s), its nodes pop, the cover lifts (done by 1.1s) and the headline
+ * fades up line by line. Repeat visits (html[data-seen]) and reduced motion
+ * skip the cover.
+ */
+html[data-seen] .preloader {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .preloader {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --intro: 0.72s;
+  }
+  html[data-seen] {
+    --intro: 0s;
+  }
+  .preloader {
+    animation: pre-lift 0.36s cubic-bezier(0.65, 0, 0.35, 1) 0.74s both;
+  }
+  .preloader .mm-strand {
+    stroke-dasharray: 1;
+    animation: draw-on 0.5s cubic-bezier(0.45, 0, 0.55, 1) both;
+  }
+  .preloader .mm-node {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pop-in 0.26s cubic-bezier(0.3, 1.5, 0.5, 1) 0.4s both;
+  }
+  .preloader .mm-node + .mm-node {
+    animation-delay: 0.48s;
+  }
+  .hero-line {
+    animation: line-up 0.55s var(--ease-brand) calc(var(--intro) + var(--i, 0) * 60ms) both;
+  }
+  .hero-scribble {
+    animation: draw-on 0.4s ease-out calc(var(--intro) + 0.4s) both;
+  }
+  .hero-after {
+    animation: fade-in 0.4s var(--ease-brand) calc(var(--intro) + 0.3s) both;
+  }
+}
+@keyframes pre-lift {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+@keyframes draw-on {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pop-in {
+  from {
+    transform: scale(0);
+  }
+}
+@keyframes line-up {
+  from {
+    opacity: 0;
+    transform: translateY(45%);
+  }
+}
